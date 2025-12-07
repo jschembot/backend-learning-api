@@ -14,7 +14,11 @@ app.use(express_1.default.json());
 app.get('/health', (_req, res) => {
     res.json({ status: 'ok' });
 });
+// Mount the topics routes under /topics
 app.use('/topics', topics_1.default);
 app.use('/exercises', exercises_1.default);
 app.use('/sessions', sessions_1.default);
 const PORT = process.env.PORT ?? 3001;
+app.listen(PORT, () => {
+    console.log(`API listening on http://localhost:${PORT}`);
+});
