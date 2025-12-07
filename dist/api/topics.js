@@ -15,9 +15,9 @@ router.get('/', async (_req, res) => {
         res.status(500).json({ error: 'Internal server error' });
     }
 });
-router.post('/', async (req, res) => {
+router.post('/', async (_req, res) => {
     try {
-        const { title, description, tags } = req.body;
+        const { title, description, tags } = _req.body;
         if (!title) {
             return res.status(400).json({ error: 'title is required' });
         }

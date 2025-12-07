@@ -3,7 +3,6 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
 const prisma_1 = require("../db/prisma");
 const router = (0, express_1.Router)();
-// GET /exercises
 router.get('/', async (_req, res) => {
     try {
         const exercises = await prisma_1.prisma.exercise.findMany({
@@ -16,10 +15,9 @@ router.get('/', async (_req, res) => {
         res.status(500).json({ error: 'Internal server error' });
     }
 });
-// POST /exercises
-router.post('/', async (req, res) => {
+router.post('/', async (_req, res) => {
     try {
-        const { name, muscleGroups, equipment, notes } = req.body ?? {};
+        const { name, muscleGroups, equipment, notes } = _req.body ?? {};
         if (!name) {
             return res.status(400).json({ error: 'name is required' });
         }

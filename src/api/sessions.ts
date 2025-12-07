@@ -1,10 +1,9 @@
-import { Router } from 'express';
+import { Router, Request, Response } from 'express';
 import { prisma } from '../db/prisma';
 
 const router = Router();
 
-// GET /sessions
-router.get('/', async (_req, res) => {
+router.get('/', async (_req: Request, res: Response) => {
   try {
     const sessions = await prisma.workoutSession.findMany({
       orderBy: { date: 'desc' },
@@ -18,9 +17,9 @@ router.get('/', async (_req, res) => {
 });
 
 // POST /sessions
-router.post('/', async (req, res) => {
+router.post('/', async (_req: Request, res: Response) => {
   try {
-    const { title, date, notes } = req.body ?? {};
+    const { title, date, notes } = _req.body ?? {};
 
     let parsedDate: Date | undefined;
 
@@ -49,7 +48,7 @@ router.post('/', async (req, res) => {
 });
 
 // GET /sessions/:id (include sets + exercise info)
-router.get('/:id', async (req, res) => {
+router.get('/:id', async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
 
@@ -77,7 +76,7 @@ router.get('/:id', async (req, res) => {
 });
 
 // POST /sessions/:id/sets
-router.post('/:id/sets', async (req, res) => {
+router.post('/:id/sets', async (req: Request, res: Response) => {
   try {
     const { id: sessionId } = req.params;
     const { exerciseId, weight, reps, notes } = req.body ?? {};

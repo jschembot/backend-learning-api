@@ -3,7 +3,6 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
 const prisma_1 = require("../db/prisma");
 const router = (0, express_1.Router)();
-// GET /sessions
 router.get('/', async (_req, res) => {
     try {
         const sessions = await prisma_1.prisma.workoutSession.findMany({
@@ -17,9 +16,9 @@ router.get('/', async (_req, res) => {
     }
 });
 // POST /sessions
-router.post('/', async (req, res) => {
+router.post('/', async (_req, res) => {
     try {
-        const { title, date, notes } = req.body ?? {};
+        const { title, date, notes } = _req.body ?? {};
         let parsedDate;
         if (date) {
             const d = new Date(date);

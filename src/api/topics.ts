@@ -1,9 +1,9 @@
-import { Router } from 'express';
+import { Router, Request, Response } from 'express';
 import { prisma } from '../db/prisma';
 
 const router = Router();
 
-router.get('/', async (_req, res) => {
+router.get('/', async (_req: Request, res: Response) => {
   try {
     const topics = await prisma.topic.findMany({
       include: { cards: true },
@@ -16,9 +16,9 @@ router.get('/', async (_req, res) => {
   }
 });
 
-router.post('/', async (req, res) => {
+router.post('/', async (_req: Request, res: Response) => {
   try {
-    const { title, description, tags } = req.body;
+    const { title, description, tags } = _req.body;
 
     if (!title) {
       return res.status(400).json({ error: 'title is required' });

@@ -1,10 +1,9 @@
-import { Router } from 'express';
+import { Router, Request, Response } from 'express';
 import { prisma } from '../db/prisma';
 
 const router = Router();
 
-// GET /exercises
-router.get('/', async (_req, res) => {
+router.get('/', async (_req: Request, res: Response) => {
   try {
     const exercises = await prisma.exercise.findMany({
       orderBy: { name: 'asc' },
@@ -17,10 +16,9 @@ router.get('/', async (_req, res) => {
   }
 });
 
-// POST /exercises
-router.post('/', async (req, res) => {
+router.post('/', async (_req: Request, res: Response) => {
   try {
-    const { name, muscleGroups, equipment, notes } = req.body ?? {};
+    const { name, muscleGroups, equipment, notes } = _req.body ?? {};
 
     if (!name) {
       return res.status(400).json({ error: 'name is required' });
