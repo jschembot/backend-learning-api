@@ -1,136 +1,115 @@
-import { Router, Request, Response } from 'express';
-import { prisma } from '../db/prisma';
+import { Router, Request, Response } from "express";
+import { sessionService } from "../application/sessions/sessionService";
+import type {
+  CreateWorkoutSessionInput,
+  CreateWorkoutSet,
+} from "../domain/sessions";
 
 const router = Router();
 
-router.get('/', async (_req: Request, res: Response) => {
+/**
+ * GET /sessions
+ * List all sessions
+ */
+router.get("/", async (_req: Request, res: Response) => {
   try {
-    const sessions = await prisma.workoutSession.findMany({
-      orderBy: { date: 'desc' },
-    });
-
+    const sessions = await sessionService.listSessions();
     res.json(sessions);
   } catch (err) {
-    console.error('GET /sessions error:', err);
-    res.status(500).json({ error: 'Internal server error' });
+    console.error("GET /sessions error:", err);
+    res.status(500).json({ error: "Failed to fetch sessions" });
   }
 });
 
-// POST /sessions
-router.post('/', async (_req: Request, res: Response) => {
+/**
+ * POST /sessions
+ * Create a new session
+ */
+router.post("/", async (req: Request, res: Response) => {
   try {
-    const { title, date, notes } = _req.body ?? {};
+    const body = req.body as Partial<CreateWorkoutSessionInput>;
 
-    let parsedDate: Date | undefined;
-
-    if (date) {
-      const d = new Date(date);
-      if (Number.isNaN(d.getTime())) {
-        return res.status(400).json({ error: 'Invalid date' });
-      }
-      parsedDate = d;
-    }
-
-    const session = await prisma.workoutSession.create({
-      data: {
-        title: title ?? null,
-        // if parsedDate is undefined, Prisma uses the DB default (now)
-        date: parsedDate,
-        notes: notes ?? null,
-      },
+    const created = await sessionService.createSession({
+      title: body.title ?? "Missing Workout Session Title",
+      date: body.date ? new Date(body.date) : undefined,
+      notes: body.notes ?? null,
     });
 
-    res.status(201).json(session);
+    res.status(201).json(created);
   } catch (err) {
-    console.error('POST /sessions error:', err);
-    res.status(500).json({ error: 'Internal server error' });
+    console.error("POST /sessions error:", err);
+    res.status(500).json({ error: "Failed to create workout session" });
   }
 });
 
-// GET /sessions/:id (include sets + exercise info)
-router.get('/:id', async (req: Request, res: Response) => {
+/**
+ * DELETE /sessions/:id
+ * Delete a session (and maybe sets via service if you choose)
+ */
+router.delete("/:id", async (req: Request, res: Response) => {
   try {
-    const { id } = req.params;
-
-    const session = await prisma.workoutSession.findUnique({
-      where: { id },
-      include: {
-        sets: {
-          include: {
-            exercise: true,
-          },
-          orderBy: { setIndex: 'asc' },
-        },
-      },
-    });
-
-    if (!session) {
-      return res.status(404).json({ error: 'Session not found' });
-    }
-
-    res.json(session);
+    const id = req.params.id;
+    await sessionService.deleteSession(id);
+    res.status(204).end();
   } catch (err) {
-    console.error('GET /sessions/:id error:', err);
-    res.status(500).json({ error: 'Internal server error' });
+    console.error("DELETE /sessions/:id error:", err);
+    res.status(500).json({ error: "Failed to delete session" });
   }
 });
 
-// POST /sessions/:id/sets
-router.post('/:id/sets', async (req: Request, res: Response) => {
+/**
+ * GET /sessions/:id/sets
+ * List sets for a session
+ */
+router.get("/:id/sets", async (req: Request, res: Response) => {
   try {
-    const { id: sessionId } = req.params;
-    const { exerciseId, weight, reps, notes } = req.body ?? {};
-
-    if (!exerciseId) {
-      return res.status(400).json({ error: 'exerciseId is required' });
-    }
-
-    // Make sure the session exists
-    const session = await prisma.workoutSession.findUnique({
-      where: { id: sessionId },
-    });
-
-    if (!session) {
-      return res.status(404).json({ error: 'Session not found' });
-    }
-
-    // Make sure the exercise exists
-    const exercise = await prisma.exercise.findUnique({
-      where: { id: exerciseId },
-    });
-
-    if (!exercise) {
-      return res.status(400).json({ error: 'Invalid exerciseId' });
-    }
-
-    // Determine next setIndex for this session
-    const lastSet = await prisma.workoutSet.findFirst({
-      where: { sessionId },
-      orderBy: { setIndex: 'desc' },
-    });
-
-    const nextIndex = (lastSet?.setIndex ?? 0) + 1;
-
-    const createdSet = await prisma.workoutSet.create({
-      data: {
-        sessionId,
-        exerciseId,
-        setIndex: nextIndex,
-        weight: typeof weight === 'number' ? weight : null,
-        reps: typeof reps === 'number' ? reps : null,
-        notes: notes ?? null,
-      },
-      include: {
-        exercise: true,
-      },
-    });
-
-    res.status(201).json(createdSet);
+    const sessionId = req.params.id;
+    const sets = await sessionService.listSetsForSession(sessionId);
+    res.json(sets);
   } catch (err) {
-    console.error('POST /sessions/:id/sets error:', err);
-    res.status(500).json({ error: 'Internal server error' });
+    console.error("GET /sessions/:id/sets error:", err);
+    res.status(500).json({ error: "Failed to fetch sets" });
   }
 });
 
+/**
+ * POST /sessions/:id/sets
+ * Add a set to a session
+ */
+router.post("/:id/sets", async (req: Request, res: Response) => {
+  try {
+    const sessionId = req.params.id;
+    const body = req.body as Partial<CreateWorkoutSet>;
+
+    const created = await sessionService.addSetToSession(sessionId, {
+      exerciseId: body.exerciseId as string,
+      weight: body.weight ?? null,
+      reps: body.reps ?? null,
+      notes: body.notes ?? null,
+    });
+
+    res.status(201).json(created);
+  } catch (err) {
+    console.error("POST /sessions/:id/sets error:", err);
+    res.status(500).json({ error: "Failed to create set" });
+  }
+});
+
+/**
+ * DELETE /sessions/:sessionId/sets/:setId
+ */
+router.delete(
+  "/:sessionId/sets/:setId",
+  async (req: Request, res: Response) => {
+    try {
+      const { setId } = req.params;
+      await sessionService.deleteSet(setId);
+      res.status(204).end();
+    } catch (err) {
+      console.error("DELETE /sessions/:sessionId/sets/:setId error:", err);
+      res.status(500).json({ error: "Failed to delete set" });
+    }
+  }
+);
 
 export default router;

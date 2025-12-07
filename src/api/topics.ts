@@ -1,5 +1,5 @@
 import { Router, Request, Response } from 'express';
-import { prisma } from '../db/prisma';
+import { prisma } from '../infra/db/prisma';
 
 const router = Router();
 

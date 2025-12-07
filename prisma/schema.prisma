@@ -29,43 +29,43 @@ model Card {
 }
 
 model Exercise {
-  id          String   @id @default(uuid())
-  name        String
+  id           String   @id @default(uuid())
+  name         String
   muscleGroups String[]
-  equipment   String?
-  notes       String?
+  equipment    String?
+  notes        String?
 
-  sets        WorkoutSet[]
+  sets WorkoutSet[]
 
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model WorkoutSession {
-  id        String      @id @default(uuid())
-  title     String?
-  date      DateTime    @default(now())
-  notes     String?
+  id    String   @id @default(uuid())
+  title String
+  date  DateTime @default(now())
+  notes String?
 
-  sets      WorkoutSet[]
+  sets WorkoutSet[]
 
-  createdAt DateTime    @default(now())
-  updatedAt DateTime    @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model WorkoutSet {
-  id              String          @id @default(uuid())
-  session         WorkoutSession  @relation(fields: [sessionId], references: [id], onDelete: Cascade)
-  sessionId       String
+  id        String         @id @default(uuid())
+  session   WorkoutSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  sessionId String
 
-  exercise        Exercise        @relation(fields: [exerciseId], references: [id], onDelete: Restrict)
-  exerciseId      String
+  exercise   Exercise @relation(fields: [exerciseId], references: [id], onDelete: Restrict)
+  exerciseId String
 
-  setIndex        Int             
-  weight          Float?
-  reps            Int?
-  notes           String?
+  setIndex Int
+  weight   Float?
+  reps     Int?
+  notes    String?
 
-  createdAt       DateTime        @default(now())
-  updatedAt       DateTime        @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
