@@ -1,0 +1,71 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma/client"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Topic {
+  id          String   @id @default(uuid())
+  title       String
+  description String?
+  tags        String[]
+  cards       Card[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Card {
+  id          String   @id @default(uuid())
+  topic       Topic    @relation(fields: [topicId], references: [id], onDelete: Cascade)
+  topicId     String
+  question    String?
+  answer      String?
+  codeSnippet String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Exercise {
+  id          String   @id @default(uuid())
+  name        String
+  muscleGroups String[]
+  equipment   String?
+  notes       String?
+
+  sets        WorkoutSet[]
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model WorkoutSession {
+  id        String      @id @default(uuid())
+  title     String?
+  date      DateTime    @default(now())
+  notes     String?
+
+  sets      WorkoutSet[]
+
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+}
+
+model WorkoutSet {
+  id              String          @id @default(uuid())
+  session         WorkoutSession  @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  sessionId       String
+
+  exercise        Exercise        @relation(fields: [exerciseId], references: [id], onDelete: Restrict)
+  exerciseId      String
+
+  setIndex        Int             
+  weight          Float?
+  reps            Int?
+  notes           String?
+
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+}
