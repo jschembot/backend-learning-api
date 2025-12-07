@@ -7,7 +7,7 @@
     "build": "npm run prisma:generate && tsc",
     "start": "node dist/server.js",
     "prisma:migrate:deploy": "prisma migrate deploy",
-    "prisma:generate": "prisma generate"
+    "prisma:generate": "npx prisma generate"
   },
   "repository": {
     "type": "git",
